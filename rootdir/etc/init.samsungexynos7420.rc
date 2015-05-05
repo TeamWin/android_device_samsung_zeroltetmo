@@ -2,8 +2,6 @@ import init.samsungexynos7420.usb.rc
 import init.wifi.rc
 import init.baseband.rc
 import init.carrier.rc
-import init.fac.rc
-import init.zerolte_fac.rc
 
 on early-init
     mount debugfs /sys/kernel/debug /sys/kernel/debug
@@ -13,13 +11,7 @@ on init
     mkdir /preload 0771 system system
 
     # See storage config details at http://source.android.com/tech/storage/
-    mkdir /mnt/media_rw/extSdCard 0700 media_rw media_rw
-    mkdir /mnt/media_rw/UsbDriveA 0700 media_rw media_rw
-    mkdir /mnt/media_rw/UsbDriveB 0700 media_rw media_rw
-    mkdir /mnt/media_rw/UsbDriveC 0700 media_rw media_rw
-    mkdir /mnt/media_rw/UsbDriveD 0700 media_rw media_rw
-    mkdir /mnt/media_rw/UsbDriveE 0700 media_rw media_rw
-    mkdir /mnt/media_rw/UsbDriveF 0700 media_rw media_rw
+    mkdir /mnt/media_rw/usbdisk 0700 media_rw media_rw
 
     # See storage config details at http://source.android.com/tech/storage/
     mkdir /mnt/shell/emulated 0700 shell shell
@@ -36,28 +28,12 @@ on init
     symlink /mnt/shell/emulated/0 /storage/emulated/legacy
 
     # map "real" external storages paths also in same way. backwards compatibility.
-    symlink /storage/extSdCard /mnt/extSdCard
-    symlink /storage/UsbDriveA /mnt/UsbDriveA
-    symlink /storage/UsbDriveB /mnt/UsbDriveB
-    symlink /storage/UsbDriveC /mnt/UsbDriveC
-    symlink /storage/UsbDriveD /mnt/UsbDriveD
-    symlink /storage/UsbDriveE /mnt/UsbDriveE
-    symlink /storage/UsbDriveF /mnt/UsbDriveF
+    symlink /storage/usbdisk /usbdisk
+    symlink /storage/usbdisk /mnt/usbdisk
 
-    #export SECONDARY_STORAGE /storage/extSdCard
-
-    mkdir /storage/extSdCard 0700 root root
-    mkdir /storage/UsbDriveA 0700 root root
-    mkdir /storage/UsbDriveB 0700 root root
-    mkdir /storage/UsbDriveC 0700 root root
-    mkdir /storage/UsbDriveD 0700 root root
-    mkdir /storage/UsbDriveE 0700 root root
-    mkdir /storage/UsbDriveF 0700 root root
+    mkdir /storage/usbdisk 0700 root root
 
     symlink /data/app /factory
-
-    symlink /dev/block/platform/15570000.ufs/by-name/STEADY /dev/block/steady
-    symlink /dev/block/platform/15570000.ufs/by-name/PERSISTENT /dev/block/persistent
 
 #Private Mode
     mkdir /mnt/shell/privatemode 0700 system system
@@ -86,10 +62,6 @@ on post-fs-data
     chown system radio /sys/class/dsm/maxdsm_cal/rdc
     mkdir /data/firmware 0770 media system
     mkdir /efs/maxim 0770 radio system
-    chown system radio /efs/maxim/temp_cal
-    chown system radio /efs/maxim/rdc_cal
-    chmod 0660 /efs/maxim/temp_cal
-    chmod 0660 /efs/maxim/rdc_cal 
     chown media system /data/firmware
 
     # Permissions Camera
@@ -104,7 +76,6 @@ on post-fs-data
     chown system radio /sys/class/camera/rear/rear_calcheck
     chown system radio /sys/class/camera/rear/isp_core
     chown system radio /sys/class/camera/rear/fw_update
-    chown system radio /sys/class/camera/rear/from_write
     chown system radio /sys/class/camera/flash/rear_flash
     chown system radio /sys/class/camera/front/front_camfw
     chown system radio /sys/class/camera/front/front_camfw_full
@@ -168,10 +139,14 @@ on boot
 #    write /proc/sys/vm/min_free_kbytes 32768
 #    write /proc/sys/vm/min_free_order_shift 1
 
+    #setprop ro.radio.noril yes
+
+    # IPSec for VOLTE
+    chown root system /dev/socket
+    chmod 0775 /dev/socket
+
     # Allow to access debugfs
     chmod 755 /sys/kernel/debug
-
-    #setprop ro.radio.noril yes
 
     # Set up kernel tracing, but disable it by default
     chmod 0222 /sys/kernel/debug/tracing/trace_marker
@@ -439,16 +414,12 @@ on boot
 # Permissions for usb_lock
     chown system radio /sys/class/android_usb/android0/usb_lock
 
-# On-Board DM
-    chmod 6755 /system/bin/dmm_v2
-
 # SSWAP
     write /proc/sys/vm/swappiness 130
 
-#Private Mode
-service privatemode /system/bin/sdcard -r /data/privatemode /mnt/shell/privatemode 1000 1000
-    class late_start
-    oneshot
+    # FM Radio
+    chmod 0640 /dev/fmradio
+    chown system system /dev/fmradio
 
 on fs
     mount_all /fstab.samsungexynos7420
@@ -497,7 +468,6 @@ on fs
     chown system radio /sys/class/input_booster/level
     chown system radio /sys/class/input_booster/head
     chown system radio /sys/class/input_booster/tail
-    chown system radio /sys/class/input_booster/touch/control
 
 # Permissions for EFS
     chown radio system /efs
@@ -515,21 +485,17 @@ on fs
     chown system system /sys/class/backlight/panel/brightness
     chown system system /sys/class/backlight/panel/auto_brightness
 
-# Permissions for LCD
-    chown system radio /sys/class/lcd/panel/manufacture_code
-    chown system radio /sys/class/lcd/panel/lcd_type
-    chown system system /sys/class/lcd/panel/siop_enable
-    chown system system /sys/class/lcd/panel/temperature
-    chown system radio /sys/class/lcd/panel/mcd_mode
-    chown system system /sys/class/backlight/panel/weakness_hbm_comp	
-
 # Permissions for LCD HMT
     chown system system /sys/class/lcd/panel/hmt_on
     chown system system /sys/class/lcd/panel/hmt_bright
     chown system system /sys/class/mdnie/mdnie/hmt_color_temperature
 
-# Permissions for LCD ALPM
-    chown system system /sys/class/lcd/panel/alpm
+# Permissions for LCD
+    chown system radio /sys/class/lcd/panel/manufacture_code
+    chown system radio /sys/class/lcd/panel/lcd_type
+    chown system system /sys/class/lcd/panel/siop_enable
+    chown system system /sys/class/lcd/panel/temperature
+    chown system system /sys/class/backlight/panel/weakness_hbm_comp
 
 # Permissions for MDNIE
     chown system media_rw /sys/class/mdnie/mdnie/mode
@@ -666,9 +632,6 @@ on fs
     chown system radio /sys/class/sensors/grip_sensor/gain
     chown system radio /sys/class/sensors/grip_sensor/start
     chown system radio /sys/class/sensors/grip_sensor/slope
-    chown system radio /sys/class/sensors/grip_sensor/temp
-    chown system radio /sys/class/sensors/grip_sensor/temp_cal
-    chown system radio /sys/class/sensors/grip_sensor/capmain
 
 # SensorHub
     chown system radio /sys/class/sensors/ssp_sensor/enable
@@ -719,17 +682,14 @@ on fs
 # Permission for DRM Key
     chmod 0644 /factory/wv.keys
 
-# ARGOSD network_throughput
+#ARGOSD network_throughput
     chown system system /dev/network_throughput
 
-# TSP & Pressure Sensor
-    chown system system /dev/i2c-6
-    chmod 0660 /dev/i2c-6
-
-# emergency firmware update
-on firmware
-    mount_all /fstab.samsungexynos7420.fwup
-    class_start firmware_update
+# DIAG
+service DIAG-daemon /system/bin/diagexe
+    class main
+    user root
+    group system radio inet net_raw
 
 # ARGOSD
 service argos-daemon /system/bin/argosd
@@ -737,11 +697,21 @@ service argos-daemon /system/bin/argosd
     user system
     group system radio
 
+# emergency firmware update
+on firmware
+    mount_all /fstab.samsungexynos7420.fwup
+    class_start firmware_update
+
 service prepare_param /system/bin/prepare_param.sh /dev/block/platform/15570000.ufs/by-name/PARAM
     class core
     user root
     group root
     seclabel u:r:prepare_param:s0
+    oneshot
+
+#Private Mode
+service privatemode /system/bin/sdcard -r /data/privatemode /mnt/shell/privatemode 1000 1000
+    class late_start
     oneshot
 
 # SENSOR FRAMEWORK : starts fingerprintService
@@ -756,45 +726,20 @@ service bauthserver /system/bin/bauthserver
     user system
     group system
 
+# MobiCore startup
+service mobicore /system/bin/mcDriverDaemon -r /system/app/FFFFFFFF000000000000000000000001.drbin -r /system/app/mcRegistry/ffffffffd0000000000000000000000a.tlbin -r /system/app/mcRegistry/ffffffffd00000000000000000000016.tlbin
+    class core
+    user system
+    group system
+
 # virtual sdcard daemon running as media_rw (1023)
-service sdcard /system/bin/sdcard -u 1023 -g 1023 -l -r /data/media /mnt/shell/emulated
+service sdcard /system/bin/sdcard -u 1023 -g 1023 -l /data/media /mnt/shell/emulated
     class late_start
     oneshot
 
-service fuse_extSdCard /system/bin/sdcard -u 1023 -g 1023 -w 1023 -d -f /mnt/media_rw/extSdCard /storage/extSdCard
+service fuse_usbdisk /system/bin/sdcard -u 1023 -g 1023 -w 1023 /mnt/media_rw/usbdisk /storage/usbdisk
     class late_start
     disabled
-    oneshot
-
-service fuse_UsbDriveA /system/bin/sdcard -u 1023 -g 1023 -d -f /mnt/media_rw/UsbDriveA /storage/UsbDriveA
-    class late_start
-    disabled
-    oneshot
-
-service fuse_UsbDriveB /system/bin/sdcard -u 1023 -g 1023 -d -f /mnt/media_rw/UsbDriveB /storage/UsbDriveB
-    class late_start
-    disabled
-    oneshot
-
-service fuse_UsbDriveC /system/bin/sdcard -u 1023 -g 1023 -d -f /mnt/media_rw/UsbDriveC /storage/UsbDriveC
-    class late_start
-    disabled
-    oneshot
-
-service fuse_UsbDriveD /system/bin/sdcard -u 1023 -g 1023 -d -f /mnt/media_rw/UsbDriveD /storage/UsbDriveD
-    class late_start
-    disabled
-    oneshot
-
-service fuse_UsbDriveE /system/bin/sdcard -u 1023 -g 1023 -d -f /mnt/media_rw/UsbDriveE /storage/UsbDriveE
-    class late_start
-    disabled
-    oneshot
-
-service fuse_UsbDriveF /system/bin/sdcard -u 1023 -g 1023 -d -f /mnt/media_rw/UsbDriveF /storage/UsbDriveF
-    class late_start
-    disabled
-    oneshot
 
 # Set watchdog timer to 30 seconds and pet it every 10 seconds to get a 20 second margin
 service watchdogd /sbin/watchdogd 10 20
@@ -810,6 +755,20 @@ on property:ro.debuggable=1
 on property:sys.boot_completed=1
     write /proc/sys/vm/dirty_bytes 62914560
     write /proc/sys/vm/dirty_background_bytes 20971520
+
+#
+# start netmgrd
+#
+on property:ro.use_data_netmgrd=true
+    start netmgrd
+
+#
+# start multiple rilds based on multisim property
+#
+on property:ro.multisim.simslotcount=2
+    stop ril-daemon
+    start ril-daemon
+    start ril-daemon1
 
 # LPM
 on property:ro.bootmode=charger
@@ -831,22 +790,12 @@ service fwup /sbin/ffu -a
     oneshot
 
 # SecEDS
-
 service TvoutService_C /system/bin/bintvoutservice
     class main
     user system
     group graphics
 on property:ro.SecEDS.enable=false
     stop TvoutService_C
-
-# DRK/CS service
-service cs_service /system/bin/cs
-    class main
-    user system
-    group system
-    disabled
-on property:sys.mobicoredaemon.enable=true
-    start cs_service
 
 # Secure Storage startup
 service secure_storage /system/bin/secure_storage_daemon
@@ -882,6 +831,15 @@ on property:persist.sys.storage_preload=1
 on property:persist.sys.storage_preload=0
     start umount_service
 
+# DRK/CS service
+service cs_service /system/bin/cs
+    class main
+    user system
+    group system
+    disabled
+on property:sys.mobicoredaemon.enable=true
+    start cs_service
+
 # SSWAP
 service swapon /sbin/sswap -s
     class core
@@ -889,6 +847,13 @@ service swapon /sbin/sswap -s
     group root
     seclabel u:r:sswap:s0
     oneshot
+
+# IPSec for VOLTE
+service ipsec-daemon /system/bin/IPSecService
+    class main
+    socket ipsec_socket stream 660 system system
+    user system
+    group system net_raw inet net_admin
 
 # RTC logging daemon
 service rtc_log /system/bin/rtc_log.sh
@@ -911,20 +876,3 @@ on property:sys.boot_completed=1
 
 on property:security.semdaemonfinish=1
     stop sem_daemon
-
-# IPSec for VOLTE
-    chown root system /dev/socket
-    chmod 0775 /dev/socket
-
-# IPSec for VOLTE
-service ipsec-daemon /system/bin/IPSecService
-    class main
-    socket ipsec_socket stream 660 system system
-    user system
-    group system net_raw inet net_admin
-
-# On-Board DM
-service DMM-deamon /system/bin/dmm_v2
-    class main
-    user root
-    group root system radio inet net_raw

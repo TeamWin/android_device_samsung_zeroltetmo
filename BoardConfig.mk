@@ -50,8 +50,9 @@ BOARD_KERNEL_PAGESIZE := 2048
 TARGET_KERNEL_ARCH := arm64
 TARGET_KERNEL_HEADER_ARCH := arm64
 TARGET_USES_UNCOMPRESSED_KERNEL := true
-TARGET_KERNEL_SOURCE := kernel/samsung/exynos7420
-TARGET_KERNEL_CONFIG := exynos7420-zerolte_tmo_defconfig
+TARGET_PREBUILT_KERNEL := $(LOCAL_PATH)/kernel
+# TARGET_KERNEL_SOURCE := kernel/samsung/exynos7420
+# TARGET_KERNEL_CONFIG := exynos7420-zerolte_tmo_defconfig
 
 # NFC
 BOARD_NFC_HAL_SUFFIX := universal7420
@@ -74,26 +75,6 @@ BOARD_OVERRIDE_RS_CPU_VARIANT_64 := cortex-a53
 
 WITH_DEXPREOPT := true
 
-# SELinux
-BOARD_SEPOLICY_DIRS += \
-	device/samsung/zeroltetmo/sepolicy
-
-BOARD_SEPOLICY_UNION += \
-	file_contexts \
-	device.te \
-	domain.te \
-	drmserver.te \
-	file.te \
-	gpsd.te \
-	init.te \
-	mediaserver.te \
-        service_contexts \
-	servicemanager.te \
-	system_app.te \
-	system_server.te \
-	vold.te \
-	wpa.te
-
 # Recovery
 BOARD_HAS_NO_SELECT_BUTTON := true
 BOARD_HAS_LARGE_FILESYSTEM := true
@@ -113,4 +94,9 @@ TW_NO_REBOOT_BOOTLOADER := true
 TW_HAS_DOWNLOAD_MODE := true
 TW_MTP_DEVICE := /dev/usb_mtp_gadget
 TW_DISABLE_TTF := true
+TW_EXCLUDE_SUPERSU := true
 TW_SCREEN_BLANK_ON_BOOT := true
+
+PRODUCT_COPY_FILES += \
+  device/samsung/zeroltetmo/rootdir/etc/twrp.fstab:recovery/root/etc/twrp.fstab \
+  device/samsung/zeroltetmo/rootdir/etc/init.samsungexynos7420.usb.rc:recovery/root/init.recovery.samsungexynos7420.rc

@@ -6,11 +6,11 @@
 #<src>                                                                 <mnt_point>         <type>    <mnt_flags and options>                                                                         <fs_mgr_flags>
 /dev/block/platform/15570000.ufs/by-name/BOOT                          /boot               emmc      defaults                                                                                        recoveryonly
 /dev/block/platform/15570000.ufs/by-name/RECOVERY                      /recovery           emmc      defaults                                                                                        recoveryonly
-/dev/block/platform/15570000.ufs/by-name/RADIO                         /modem              emmc      defaults                                                                                        defaults
-/dev/block/platform/15570000.ufs/by-name/SYSTEM                        /system             ext4      noatime,nodev,noauto_da_alloc,discard,journal_async_commit,data=ordered,errors=panic     wait,check
+/dev/block/platform/15570000.ufs/by-name/SYSTEM                        /system             ext4      ro,errors=panic,noload
 /dev/block/platform/15570000.ufs/by-name/EFS                           /efs                ext4      noatime,nosuid,nodev,noauto_da_alloc,discard,journal_async_commit,data=ordered,errors=panic     wait,check
 /dev/block/platform/15570000.ufs/by-name/CACHE                         /cache              ext4      noatime,nosuid,nodev,noauto_da_alloc,discard,journal_async_commit,data=ordered,errors=panic     wait,check
 /dev/block/platform/15570000.ufs/by-name/USERDATA                      /data               ext4      noatime,nosuid,nodev,noauto_da_alloc,discard,journal_async_commit,data=ordered,errors=panic     wait,check,encryptable=footer,length=-16384
+/dev/block/platform/15570000.ufs/by-name/RADIO                         /modem              emmc      defaults                                                                                        defaults
 /dev/block/platform/15570000.ufs/by-name/SBFS                          /sbfs               ext4      defaults                                                                                        defaults
 
 # VOLD

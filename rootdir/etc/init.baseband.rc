@@ -3,8 +3,6 @@ on init
     symlink /dev/block/platform/15570000.ufs/by-name/RADIO /dev/mbin0
     restorecon /dev/mbin0
 
-    symlink  /sys/devices/10f24000.mipi-lli /dev/mipi-lli
-
     write /sys/class/net/rmnet0/queues/rx-0/rps_cpus 7
     write /sys/class/net/rmnet1/queues/rx-0/rps_cpus 7
     write /sys/class/net/rmnet2/queues/rx-0/rps_cpus 7
@@ -40,3 +38,4 @@ on property:ro.debuggable=1
 	write /sys/kernel/debug/tracing/buffer_size_kb 1408
 	write /sys/kernel/debug/tracing/set_event modem_if:mif_log
 	write /sys/kernel/debug/tracing/tracing_on 1
+
